@@ -72,13 +72,21 @@ function getUnitCoords(id: string): { x: number; y: number } {
   };
 }
 
+const CHROMAKEY_CACHE: Record<string, string> = {};
+
 // Client-side Chromakey transparency filter for solid white backgrounds
 function useChromakeySprite(src: string, keyColorHex: string = "#ffffff", tolerance: number = 45) {
-  const [processedSrc, setProcessedSrc] = useState<string | null>(null);
+  const cacheKey = `${src}_${keyColorHex}_${tolerance}`;
+  const [processedSrc, setProcessedSrc] = useState<string | null>(CHROMAKEY_CACHE[cacheKey] || null);
 
   useEffect(() => {
     if (!src) {
       setProcessedSrc(null);
+      return;
+    }
+
+    if (CHROMAKEY_CACHE[cacheKey]) {
+      setProcessedSrc(CHROMAKEY_CACHE[cacheKey]);
       return;
     }
 
@@ -120,7 +128,9 @@ function useChromakeySprite(src: string, keyColorHex: string = "#ffffff", tolera
       }
 
       ctx.putImageData(imgData, 0, 0);
-      setProcessedSrc(canvas.toDataURL());
+      const dataUrl = canvas.toDataURL();
+      CHROMAKEY_CACHE[cacheKey] = dataUrl;
+      setProcessedSrc(dataUrl);
     };
     img.onerror = () => {
       setProcessedSrc(src);

@@ -15,24 +15,30 @@ export default function ArenaScreen() {
   const showCost = players.A.costInPerM > 0 || players.A.costOutPerM > 0 || players.B.costInPerM > 0 || players.B.costOutPerM > 0;
   const [showLogs, setShowLogs] = useState(false);
 
-  const [countdown, setCountdown] = useState<number | "Fight!" | null>(null);
+  const [countdown, setCountdown] = useState<number | "Fight!" | "Readying..." | null>(null);
   const countdownFinishedRef = useRef(false);
 
   // 1. Separate Effect to handle the countdown sequence (runs once on mount)
   useEffect(() => {
     if (m.turns.length === 0 && !countdownFinishedRef.current) {
-      setCountdown(3);
+      setCountdown("Readying...");
 
-      const timer3 = setTimeout(() => setCountdown(2), 1000);
-      const timer2 = setTimeout(() => setCountdown(1), 2000);
-      const timer1 = setTimeout(() => setCountdown("Fight!"), 3000);
+      // Give 1.2s for chromakey assets to load & process before counting down
+      const prepTimer = setTimeout(() => {
+        setCountdown(3);
+      }, 1200);
+
+      const timer3 = setTimeout(() => setCountdown(2), 2200);
+      const timer2 = setTimeout(() => setCountdown(1), 3200);
+      const timer1 = setTimeout(() => setCountdown("Fight!"), 4200);
       const timerEnd = setTimeout(() => {
         countdownFinishedRef.current = true;
         setCountdown(null);
         m.resume(); // Resume the match to start LLM calls
-      }, 4000);
+      }, 5200);
 
       return () => {
+        clearTimeout(prepTimer);
         clearTimeout(timer3);
         clearTimeout(timer2);
         clearTimeout(timer1);
@@ -189,16 +195,25 @@ export default function ArenaScreen() {
       {/* Countdown Overlay */}
       {countdown !== null && (
         <div className="countdown-overlay">
-          <span
-            key={countdown}
-            className={`countdown-text ${
-              countdown === "Fight!"
-                ? "text-rose-500 text-[10rem] md:text-[13rem]"
-                : "text-amber-400 text-[12rem] md:text-[15rem]"
-            }`}
-          >
-            {countdown}
-          </span>
+          {countdown === "Readying..." ? (
+            <div className="flex flex-col items-center gap-4 text-center animate-pulse">
+              <span className="text-4xl text-amber-500 animate-spin">🛡️</span>
+              <span className="text-xs font-black font-mono tracking-widest text-zinc-400 uppercase">
+                Preparing Battleground...
+              </span>
+            </div>
+          ) : (
+            <span
+              key={countdown}
+              className={`countdown-text ${
+                countdown === "Fight!"
+                  ? "text-rose-500 text-[10rem] md:text-[13rem]"
+                  : "text-amber-400 text-[12rem] md:text-[15rem]"
+              }`}
+            >
+              {countdown}
+            </span>
+          )}
         </div>
       )}
     </div>
