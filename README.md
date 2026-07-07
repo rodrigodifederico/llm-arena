@@ -114,6 +114,27 @@ LLM Arena is built with deep observability features:
 
 ---
 
+## 🌐 API Endpoint Reference
+
+To help testers run matches between different providers, use the following OpenAI-compatible endpoint configurations:
+
+| Provider | Base URL (Endpoint) | Notes |
+| :--- | :--- | :--- |
+| **OpenAI** | `https://api.openai.com/v1` | Official OpenAI API. |
+| **Gemini (Google)** | `https://generativelanguage.googleapis.com/v1beta/openai` | Google Gemini API (OpenAI-compatible mode). |
+| **DeepSeek** | `https://api.deepseek.com/v1` | Official DeepSeek API. |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | Unified access proxy to hundreds of LLMs. |
+| **Groq** | `https://api.groq.com/openai/v1` | High-speed inference for Llama, Mistral, Gemma, etc. |
+| **Mistral AI** | `https://api.mistral.ai/v1` | Official Mistral AI endpoint. |
+| **Together AI** | `https://api.together.xyz/v1` | Together open-source model endpoint. |
+| **Ollama** (Local) | `http://localhost:11434/v1` | Locally hosted models via Ollama. |
+| **LM Studio** (Local) | `http://localhost:1234/v1` | Local models run in LM Studio. |
+| **vLLM** (Local) | `http://localhost:8000/v1` | Local deployment using vLLM. |
+
+*Note: For remote endpoints (OpenAI, Gemini, DeepSeek, etc.), make sure to provide your personal API key on the Setup Screen. These keys are only stored in memory or in your local browser storage (`localStorage`), never committed or uploaded anywhere.*
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites

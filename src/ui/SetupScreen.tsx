@@ -19,6 +19,18 @@ function Field({ label, children, hint }: { label: string; children: React.React
 const inputCls =
   "mt-1 w-full rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-sm text-zinc-100 outline-none focus:border-zinc-500";
 
+const API_PRESETS = [
+  { name: "OpenAI", url: "https://api.openai.com/v1" },
+  { name: "Gemini", url: "https://generativelanguage.googleapis.com/v1beta/openai" },
+  { name: "DeepSeek", url: "https://api.deepseek.com/v1" },
+  { name: "OpenRouter", url: "https://openrouter.ai/api/v1" },
+  { name: "Groq", url: "https://api.groq.com/openai/v1" },
+  { name: "Mistral", url: "https://api.mistral.ai/v1" },
+  { name: "Together", url: "https://api.together.xyz/v1" },
+  { name: "Ollama", url: "http://localhost:11434/v1" },
+  { name: "LM Studio", url: "http://localhost:1234/v1" },
+];
+
 function PlayerCard({ player }: { player: PlayerId }) {
   const setup = useConfigStore((s) => s.players[player]);
   const setPlayer = useConfigStore((s) => s.setPlayer);
@@ -55,8 +67,25 @@ function PlayerCard({ player }: { player: PlayerId }) {
       <Field label="Label (display name)">
         <input className={inputCls} value={setup.label} onChange={(e) => set({ label: e.target.value })} placeholder={`e.g. "DeepSeek V4 Flash"`} />
       </Field>
-      <Field label="Base URL" hint="OpenAI-compatible, e.g. https://api.deepseek.com/v1, http://localhost:11434/v1 or https://generativelanguage.googleapis.com/v1beta/openai">
+      <Field label="Base URL" hint="OpenAI-compatible endpoints. Click a preset below to auto-fill:">
         <input className={inputCls} value={setup.baseUrl} onChange={(e) => set({ baseUrl: e.target.value })} placeholder="https://…/v1" />
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {API_PRESETS.map((preset) => (
+            <button
+              key={preset.name}
+              type="button"
+              className="rounded bg-zinc-800/80 px-1.5 py-0.5 text-[10px] text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
+              onClick={() => {
+                set({
+                  baseUrl: preset.url,
+                  label: !setup.label || setup.label.startsWith("Player") ? `${preset.name} Fighter` : setup.label
+                });
+              }}
+            >
+              {preset.name}
+            </button>
+          ))}
+        </div>
       </Field>
       <Field label="API Key" hint="Kept in memory only; sent only to this endpoint (or your local proxy). Never exported.">
         <div className="mt-1 flex gap-1">
