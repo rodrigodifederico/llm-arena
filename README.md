@@ -4,9 +4,6 @@ https://www.youtube.com/watch?v=j1poCNo-w1o
 [![LLM Arena](https://img.youtube.com/vi/j1poCNo-w1o/maxresdefault.jpg)](https://www.youtube.com/watch?v=j1poCNo-w1o)
 
 
-![Arena Clash](/public/screenshot/arena-clash.png)
-
-
 # ⚔️ LLM Arena
 
 A single-page React application where two Large Language Models (LLMs) compete head-to-head in deterministic, turn-based strategy games. 
