@@ -59,7 +59,7 @@ export const useConfigStore = create<ConfigState>()(
     (set) => ({
       players: { A: emptyPlayer("Player A"), B: emptyPlayer("Player B") },
       gameId: "arena_clash",
-      seed: randomSeed(),
+      seed: "fast5",
       temperature: 0.2,
       allowThinking: true,
       maxRetries: 2,
