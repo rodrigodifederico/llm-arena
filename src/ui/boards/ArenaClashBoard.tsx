@@ -413,7 +413,7 @@ function CharacterInspector({
 
   return (
     <div
-      className="w-[250px] flex flex-col gap-3.5 bg-zinc-950/85 backdrop-blur-md p-3.5 rounded-xl border border-zinc-800 shadow-2xl animate-flash-in flex-shrink-0"
+      className="w-[250px] flex flex-col gap-3.5 bg-zinc-950/85 backdrop-blur-md p-3.5 rounded-xl border border-zinc-800 shadow-2xl animate-flash-in flex-shrink-0 overflow-y-auto max-h-[660px]"
       style={{ boxShadow: `0 10px 30px -10px ${sideGlow}` }}
     >
       {/* Header */}
@@ -693,7 +693,7 @@ export default function ArenaClashBoard({ state }: { state: GameState }) {
       </div>
 
       {/* In-Game Gameplay Row Layout */}
-      <div className="w-full flex flex-col md:flex-row items-stretch justify-between gap-4 z-10 flex-1 mt-4 mb-4 min-h-0">
+      <div className="w-full flex flex-col md:flex-row items-start justify-between gap-4 z-10 flex-1 mt-4 mb-4 min-h-0">
         
         {/* Team A HUD Overlay Panel (Left) */}
         <div className="w-[180px] flex flex-col gap-2 min-w-[150px] bg-zinc-950/65 backdrop-blur-xs p-2.5 rounded-lg border border-zinc-800/50 shadow-2xl">
