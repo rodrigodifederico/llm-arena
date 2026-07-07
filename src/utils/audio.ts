@@ -185,3 +185,147 @@ export function playSound(type: "attack" | "heal" | "poison" | "death" | "shoot"
     console.warn("Audio Context playback failed:", e);
   }
 }
+
+let bgmVolumeNode: GainNode | null = null;
+let schedulerTimer: number | null = null;
+let nextNoteTime = 0.0;
+let step = 0;
+const tempo = 110.0; // BPM
+const secondsPerStep = 60.0 / tempo / 2; // 8th notes (approx. 0.27s)
+
+// Cozy retro fantasy chord progression: Am -> F -> C -> G
+const CHORDS = [
+  [110.00, 220.00, 261.63, 329.63], // Am
+  [110.00, 220.00, 261.63, 329.63],
+  [87.31, 174.61, 261.63, 349.23],  // F
+  [87.31, 174.61, 261.63, 349.23],
+  [130.81, 261.63, 329.63, 392.00], // C
+  [130.81, 261.63, 329.63, 392.00],
+  [98.00, 196.00, 293.66, 392.00],  // G
+  [98.00, 196.00, 293.66, 392.00]
+];
+
+// Nostalgic retro fantasy RPG melody (sine wave for cozy ambient sound)
+const MELODY = [
+  440.00, 523.25, 587.33, 659.25, 
+  0,       659.25, 783.99, 880.00, 
+  880.00, 783.99, 659.25, 523.25, 
+  587.33, 0,       440.00, 0
+];
+
+function scheduleNextStep(ctx: AudioContext, time: number) {
+  if (!bgmVolumeNode) return;
+  const chordIdx = Math.floor(step / 4) % CHORDS.length;
+  const chord = CHORDS[chordIdx];
+  
+  // 1. Bass line
+  if (step % 4 === 0) {
+    const bassOsc = ctx.createOscillator();
+    bassOsc.type = "triangle";
+    bassOsc.frequency.setValueAtTime(chord[0] / 2, time); // deeper bass
+    
+    const bassGain = ctx.createGain();
+    bassGain.gain.setValueAtTime(0.12, time);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, time + 0.9);
+    
+    bassOsc.connect(bassGain);
+    bassGain.connect(bgmVolumeNode);
+    bassOsc.start(time);
+    bassOsc.stop(time + 1.0);
+  }
+  
+  // 2. Cozy chord arpeggio
+  const arpNoteIdx = step % 4;
+  const arpFreq = chord[1 + (arpNoteIdx % 3)];
+  const arpOsc = ctx.createOscillator();
+  arpOsc.type = "sine";
+  arpOsc.frequency.setValueAtTime(arpFreq, time);
+  
+  const arpGain = ctx.createGain();
+  arpGain.gain.setValueAtTime(0.03, time);
+  arpGain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+  
+  arpOsc.connect(arpGain);
+  arpGain.connect(bgmVolumeNode);
+  arpOsc.start(time);
+  arpOsc.stop(time + 0.25);
+
+  // 3. Melody line
+  const melodyFreq = MELODY[step % MELODY.length];
+  if (melodyFreq > 0) {
+    const melOsc = ctx.createOscillator();
+    melOsc.type = "sine";
+    melOsc.frequency.setValueAtTime(melodyFreq, time);
+    
+    // Cozy vibrato
+    const vibrato = ctx.createOscillator();
+    const vibratoGain = ctx.createGain();
+    vibrato.frequency.value = 5.5; // vibrato speed
+    vibratoGain.gain.value = 2.5;  // vibrato depth
+    vibrato.connect(vibratoGain);
+    vibratoGain.connect(melOsc.frequency);
+    
+    const melGain = ctx.createGain();
+    melGain.gain.setValueAtTime(0.04, time);
+    melGain.gain.linearRampToValueAtTime(0.03, time + 0.15);
+    melGain.gain.exponentialRampToValueAtTime(0.001, time + 0.45);
+    
+    melOsc.connect(melGain);
+    melGain.connect(bgmVolumeNode);
+    
+    vibrato.start(time);
+    melOsc.start(time);
+    vibrato.stop(time + 0.5);
+    melOsc.stop(time + 0.5);
+  }
+
+  step++;
+}
+
+export function startBGM() {
+  try {
+    const ctx = getAudioContext();
+    if (schedulerTimer) return; // already running
+
+    if (!bgmVolumeNode) {
+      bgmVolumeNode = ctx.createGain();
+      const savedMute = localStorage.getItem("bgm_muted");
+      bgmVolumeNode.gain.value = savedMute === "true" ? 0 : 0.15; // cozy background volume
+      bgmVolumeNode.connect(ctx.destination);
+    }
+
+    nextNoteTime = ctx.currentTime;
+    step = 0;
+
+    const scheduler = () => {
+      while (nextNoteTime < ctx.currentTime + 0.1) {
+        scheduleNextStep(ctx, nextNoteTime);
+        nextNoteTime += secondsPerStep;
+      }
+      schedulerTimer = window.setTimeout(scheduler, 25);
+    };
+    
+    scheduler();
+  } catch (e) {
+    console.warn("BGM failed to start:", e);
+  }
+}
+
+export function stopBGM() {
+  if (schedulerTimer) {
+    clearTimeout(schedulerTimer);
+    schedulerTimer = null;
+  }
+}
+
+export function setBGMMuted(muted: boolean) {
+  localStorage.setItem("bgm_muted", String(muted));
+  if (bgmVolumeNode) {
+    bgmVolumeNode.gain.value = muted ? 0 : 0.15;
+  }
+}
+
+export function isBGMMuted(): boolean {
+  const savedMute = localStorage.getItem("bgm_muted");
+  return savedMute === "true";
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { GameState } from "../../engine/GameEngine";
 import { ARCHETYPES, type ArenaState, type ArenaUnit } from "../../engine/arenaClash";
-import { playSound } from "../../utils/audio";
+import { playSound, startBGM, stopBGM, isBGMMuted, setBGMMuted } from "../../utils/audio";
 import { useSpritePoses, type SpritePose } from "./useSpritePoses";
 
 // Effect-sprite assets (public/sprites/fx/*.svg)
@@ -556,6 +556,21 @@ export default function ArenaClashBoard({ state }: { state: GameState }) {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const selectedUnit = visualState.units.find((u) => u.id === selectedUnitId);
 
+  const [muted, setMuted] = useState(isBGMMuted());
+
+  useEffect(() => {
+    startBGM();
+    return () => {
+      stopBGM();
+    };
+  }, []);
+
+  const handleToggleMute = () => {
+    const newMuted = !muted;
+    setBGMMuted(newMuted);
+    setMuted(newMuted);
+  };
+
 
 
   // Animation controller — driven by the engine's structured lastEvent
@@ -686,6 +701,15 @@ export default function ArenaClashBoard({ state }: { state: GameState }) {
     <div className="w-full relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/60 min-h-[720px] flex flex-col items-center justify-between p-4">
       {/* FOREST SCENERY BACKDROP */}
       <div className="forest-scenery" />
+
+      {/* Background Music Mute/Unmute Toggle */}
+      <button
+        onClick={handleToggleMute}
+        className="absolute top-4 right-4 z-20 bg-zinc-950/80 hover:bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1.5 text-[11px] font-mono font-bold text-zinc-400 hover:text-zinc-200 transition-all flex items-center gap-1.5 select-none shadow-md cursor-pointer"
+        title="Toggle Background Music"
+      >
+        {muted ? "🔇 Music Off" : "🎵 Music On"}
+      </button>
 
       {/* Last Action Notification Box HUD */}
       <div className="min-h-[50px] w-full max-w-xl flex items-center justify-center rounded-lg border border-zinc-800/80 bg-zinc-950/85 px-4 py-2 text-center text-xs text-amber-300 font-medium shadow-md flash-in z-20" key={visualState.lastAction ?? "start"}>
