@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ENGINES } from "../engine";
 import type { PlayerId } from "../engine/GameEngine";
 import { fetchModels, testConnection } from "../llm/LLMClient";
@@ -38,6 +38,7 @@ function PlayerCard({ player }: { player: PlayerId }) {
   const [testResult, setTestResult] = useState<string | null>(null);
   const [models, setModels] = useState<string[]>([]);
   const [showKey, setShowKey] = useState(false);
+  const apiKeyInputRef = useRef<HTMLInputElement | null>(null);
 
   const accent = player === "A" ? "border-cyan-500/40" : "border-fuchsia-500/40";
   const title = player === "A" ? "text-cyan-400" : "text-fuchsia-400";
@@ -80,6 +81,12 @@ function PlayerCard({ player }: { player: PlayerId }) {
                   baseUrl: preset.url,
                   label: !setup.label || setup.label.startsWith("Player") ? `${preset.name} Fighter` : setup.label
                 });
+                setTimeout(() => {
+                  if (apiKeyInputRef.current) {
+                    apiKeyInputRef.current.focus();
+                    apiKeyInputRef.current.select();
+                  }
+                }, 50);
               }}
             >
               {preset.name}
@@ -90,6 +97,7 @@ function PlayerCard({ player }: { player: PlayerId }) {
       <Field label="API Key" hint="Kept in memory only; sent only to this endpoint (or your local proxy). Never exported.">
         <div className="mt-1 flex gap-1">
           <input
+            ref={apiKeyInputRef}
             className={inputCls + " mt-0 flex-1"}
             type={showKey ? "text" : "password"}
             value={setup.apiKey}
