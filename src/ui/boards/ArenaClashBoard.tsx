@@ -311,128 +311,235 @@ function UnitToken({
   );
 }
 
-function DetailedUnitCard({ unit, active }: { unit: ArenaUnit; active: boolean }) {
-  const [expanded, setExpanded] = useState(false);
-  const dead = unit.hp <= 0;
-  const accent = unit.side === "A" ? "border-cyan-500/40 bg-cyan-950/5" : "border-fuchsia-500/40 bg-fuchsia-950/5";
-  const glow = active ? "ring-1 ring-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)] bg-zinc-900" : "";
+function CompactUnitCard({
+  unit,
+  active,
+  selected,
+  onClick,
+}: {
+  unit: ArenaUnit;
+  active: boolean;
+  selected: boolean;
+  onClick: () => void;
+}) {
   const sideColor = unit.side === "A" ? "text-cyan-400" : "text-fuchsia-400";
+  const borderHighlight = active
+    ? (unit.side === "A"
+        ? "border-cyan-500 bg-cyan-950/20 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+        : "border-fuchsia-500 bg-fuchsia-950/20 shadow-[0_0_8px_rgba(217,70,239,0.4)]")
+    : selected
+      ? "border-amber-500 bg-zinc-900/80"
+      : "border-zinc-800 bg-zinc-900/30 hover:bg-zinc-800/40";
 
-  // Find archetype definition for stats and special skill
-  const archDef = ARCHETYPES.find((a) => a.key === unit.archetype.toLowerCase());
+  const dead = unit.hp <= 0;
 
-  // Load avatar sprite with chromakey transparency
-  const archetype = unit.archetype.toLowerCase();
-  const rawSpriteSrc = dead ? `/sprites/ghost.png` : `/sprites/${archetype}.png`;
-  const transparentSrc = useChromakeySprite(rawSpriteSrc, "#ffffff", 45);
-  
   return (
     <div
-      className={`w-full rounded-xl border bg-zinc-900/60 p-2.5 flex flex-col gap-1.5 transition-all duration-300 ${accent} ${glow} ${
-        dead ? "opacity-30 grayscale" : ""
+      onClick={onClick}
+      className={`rounded-lg border p-2 space-y-1.5 transition-all duration-200 cursor-pointer ${borderHighlight} select-none ${
+        dead ? "opacity-40 grayscale" : ""
       }`}
     >
-      <div className="flex items-center gap-2">
-        {/* Avatar Circle */}
-        <div className="w-10 h-10 rounded-full bg-zinc-950/90 border border-zinc-800 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-          {transparentSrc ? (
-            <img 
-              src={transparentSrc} 
-              alt={unit.name} 
-              className="w-8 h-8 object-contain pixelated" 
-            />
-          ) : (
-            <span className="text-xl">{dead ? "💀" : unit.emoji}</span>
-          )}
-        </div>
-
-        {/* Name and ID */}
+      <div className="flex gap-1.5 items-center">
+        <span className="text-base flex-shrink-0">{unit.emoji}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-bold truncate block">
-              <span className={sideColor}>{unit.id}</span> {unit.name}
-            </span>
-          </div>
-          <span className="text-[9px] text-zinc-500 capitalize block leading-none mt-0.5">{unit.archetype}</span>
+          <span className="text-[11px] font-bold truncate block leading-none text-zinc-100">
+            <span className={sideColor}>{unit.id}</span> {unit.name}
+          </span>
         </div>
       </div>
       
-      <div className="space-y-1">
-        <div>
-          <div className="flex justify-between text-[9px] text-zinc-400 mb-0.5">
-            <span>HP</span>
-            <span>{Math.max(0, unit.hp)}/{unit.maxHp}</span>
+      <div className="space-y-1 text-[9px]">
+        {/* HP */}
+        <div className="flex items-center gap-1">
+          <span className="text-zinc-500 w-4 font-mono font-bold">HP</span>
+          <div className="flex-1 h-1 rounded bg-zinc-800 overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 transition-all duration-300"
+              style={{ width: `${Math.max(0, (unit.hp / unit.maxHp) * 100)}%` }}
+            />
           </div>
-          <Bar value={Math.max(0, unit.hp)} max={unit.maxHp} color="bg-emerald-500" />
+          <span className="text-zinc-400 w-6 text-right font-mono font-bold">{Math.max(0, unit.hp)}</span>
         </div>
-        <div>
-          <div className="flex justify-between text-[9px] text-zinc-400 mb-0.5">
-            <span>MP</span>
-            <span>{unit.mana}/{unit.maxMana}</span>
+        {/* MP */}
+        <div className="flex items-center gap-1">
+          <span className="text-zinc-500 w-4 font-mono font-bold">MP</span>
+          <div className="flex-1 h-1 rounded bg-zinc-800 overflow-hidden">
+            <div
+              className="h-full bg-sky-500 transition-all duration-300"
+              style={{ width: `${(unit.mana / unit.maxMana) * 100}%` }}
+            />
           </div>
-          <Bar value={unit.mana} max={unit.maxMana} color="bg-sky-500" />
+          <span className="text-zinc-400 w-6 text-right font-mono font-bold">{unit.mana}</span>
         </div>
       </div>
 
-      {/* Statuses list */}
-      <div className="flex flex-wrap gap-1 min-h-[14px]">
-        {unit.statuses.map((st, i) => (
-          <span
-            key={i}
-            className="text-[10px] bg-zinc-950 border border-zinc-800 rounded px-1.5 py-0.5 flex items-center gap-0.5 font-mono text-zinc-300"
-            title={`${st.kind} (${st.roundsLeft} rounds remaining)`}
-          >
-            <span>{STATUS_ICON[st.kind] ?? "•"}</span>
-            <span className="text-[8px] text-zinc-500">{st.roundsLeft}</span>
+      {/* Statuses (compact icons) */}
+      {unit.statuses.length > 0 && (
+        <div className="flex flex-wrap gap-0.5 pt-0.5">
+          {unit.statuses.map((st, i) => (
+            <span
+              key={i}
+              className="text-[9px] leading-none"
+              title={`${st.kind} (${st.roundsLeft} rounds remaining)`}
+            >
+              {STATUS_ICON[st.kind] ?? "•"}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CharacterInspector({
+  unit,
+  onClose,
+}: {
+  unit: ArenaUnit;
+  onClose: () => void;
+}) {
+  const archDef = ARCHETYPES.find((a) => a.key === unit.archetype.toLowerCase());
+  const sideColor = unit.side === "A" ? "text-cyan-400" : "text-fuchsia-400";
+  const sideGlow = unit.side === "A" ? "rgba(6,182,212,0.15)" : "rgba(217,70,239,0.15)";
+  
+  const hpPct = Math.max(0, Math.min(100, (unit.hp / unit.maxHp) * 100));
+  const mpPct = Math.max(0, Math.min(100, (unit.mana / unit.maxMana) * 100));
+  const dead = unit.hp <= 0;
+
+  const archetype = unit.archetype.toLowerCase();
+  const rawSpriteSrc = dead ? `/sprites/ghost.png` : `/sprites/${archetype}.png`;
+  const transparentSrc = useChromakeySprite(rawSpriteSrc, "#ffffff", 45);
+
+  return (
+    <div
+      className="w-[250px] flex flex-col gap-3.5 bg-zinc-950/85 backdrop-blur-md p-3.5 rounded-xl border border-zinc-800 shadow-2xl animate-flash-in flex-shrink-0"
+      style={{ boxShadow: `0 10px 30px -10px ${sideGlow}` }}
+    >
+      {/* Header */}
+      <div className="flex justify-between items-start border-b border-zinc-900 pb-2">
+        <div>
+          <span className="text-[9px] font-black font-mono tracking-widest text-zinc-500 uppercase">
+            Unit Profile
           </span>
-        ))}
+          <h3 className="text-sm font-black truncate block mt-0.5 text-zinc-100">
+            <span className={sideColor}>{unit.id}</span> {unit.name}
+          </h3>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-zinc-500 hover:text-zinc-200 transition-all font-mono font-bold text-[9px] tracking-wider px-1.5 py-0.5 hover:bg-zinc-900 rounded cursor-pointer"
+        >
+          ✕ CLOSE
+        </button>
       </div>
 
-      {/* Expand/Collapse Toggle Button */}
-      <button 
-        onClick={() => setExpanded(!expanded)} 
-        className="w-full text-center text-[9px] font-bold text-zinc-500 hover:text-zinc-300 py-1 bg-zinc-950/40 hover:bg-zinc-950/70 border border-zinc-800/60 rounded transition-all duration-200 mt-1 uppercase tracking-wider font-mono"
-      >
-        {expanded ? "▲ Hide Details" : "▼ Show Details"}
-      </button>
+      {/* Avatar Image Section */}
+      <div className="relative aspect-square w-full rounded-lg bg-zinc-900/60 border border-zinc-850 flex items-center justify-center p-3 overflow-hidden group">
+        <div 
+          className="absolute inset-0 transition-opacity duration-500 opacity-20 group-hover:opacity-40" 
+          style={{ background: `radial-gradient(circle, ${sideGlow} 0%, transparent 70%)` }}
+        />
+        
+        {transparentSrc ? (
+          <img
+            src={transparentSrc}
+            alt={unit.name}
+            className="w-4/5 h-4/5 object-contain z-10 filter drop-shadow(0 0 12px rgba(0,0,0,0.6)) transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <span className="text-4xl z-10">{dead ? "💀" : unit.emoji}</span>
+        )}
+        
+        {dead && (
+          <span className="absolute bottom-2 bg-red-950/80 border border-red-800/50 text-red-400 text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-widest font-mono shadow-md z-15">
+            Fallen
+          </span>
+        )}
+      </div>
 
-      {/* Expandable Stats and Skill Area */}
-      {expanded && archDef && (
-        <div className="mt-1 pt-1.5 border-t border-zinc-800/80 flex flex-col gap-2 text-[10px] text-zinc-400 font-sans animate-flash-in">
-          {/* Base Stats Grid */}
-          <div className="grid grid-cols-5 gap-1 text-center bg-zinc-950/40 p-1 rounded border border-zinc-900">
+      {/* Health & Mana Bars (Larger) */}
+      <div className="space-y-2">
+        <div>
+          <div className="flex justify-between items-baseline mb-0.5">
+            <span className="text-[9px] font-bold text-zinc-400 font-mono">HEALTH POINTS</span>
+            <span className="text-xs font-bold text-emerald-400 font-mono">{Math.max(0, unit.hp)} / {unit.maxHp}</span>
+          </div>
+          <div className="h-2.5 w-full rounded-full bg-zinc-900 overflow-hidden border border-zinc-800/80">
+            <div className="h-full rounded-full bg-emerald-500 transition-all duration-300" style={{ width: `${hpPct}%` }} />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between items-baseline mb-0.5">
+            <span className="text-[9px] font-bold text-zinc-400 font-mono">MANA POINTS</span>
+            <span className="text-xs font-bold text-sky-400 font-mono">{unit.mana} / {unit.maxMana}</span>
+          </div>
+          <div className="h-2.5 w-full rounded-full bg-zinc-900 overflow-hidden border border-zinc-800/80">
+            <div className="h-full rounded-full bg-sky-500 transition-all duration-300" style={{ width: `${mpPct}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Base Stats Grid (Larger) */}
+      {archDef && (
+        <div className="space-y-1">
+          <span className="text-[9px] font-bold text-zinc-500 font-mono tracking-wide uppercase">Core Attributes</span>
+          <div className="grid grid-cols-5 gap-1 text-center bg-zinc-950/60 p-1.5 rounded-lg border border-zinc-900 shadow-inner">
             <div>
-              <div className="text-[8px] text-zinc-600 font-bold uppercase">ATK</div>
-              <div className="font-mono text-zinc-300">{archDef.atk}</div>
+              <div className="text-[8px] text-zinc-500 font-bold uppercase font-mono">ATK</div>
+              <div className="font-mono text-xs font-black text-zinc-200 mt-0.5">{archDef.atk}</div>
             </div>
             <div>
-              <div className="text-[8px] text-zinc-600 font-bold uppercase">DEF</div>
-              <div className="font-mono text-zinc-300">{archDef.def}</div>
+              <div className="text-[8px] text-zinc-500 font-bold uppercase font-mono">DEF</div>
+              <div className="font-mono text-xs font-black text-zinc-200 mt-0.5">{archDef.def}</div>
             </div>
             <div>
-              <div className="text-[8px] text-zinc-600 font-bold uppercase">MAG</div>
-              <div className="font-mono text-zinc-300">{archDef.mag}</div>
+              <div className="text-[8px] text-zinc-500 font-bold uppercase font-mono">MAG</div>
+              <div className="font-mono text-xs font-black text-zinc-200 mt-0.5">{archDef.mag}</div>
             </div>
             <div>
-              <div className="text-[8px] text-zinc-600 font-bold uppercase">RES</div>
-              <div className="font-mono text-zinc-300">{archDef.res}</div>
+              <div className="text-[8px] text-zinc-500 font-bold uppercase font-mono">RES</div>
+              <div className="font-mono text-xs font-black text-zinc-200 mt-0.5">{archDef.res}</div>
             </div>
             <div>
-              <div className="text-[8px] text-zinc-600 font-bold uppercase">SPD</div>
-              <div className="font-mono text-zinc-300">{archDef.spd}</div>
+              <div className="text-[8px] text-zinc-500 font-bold uppercase font-mono">SPD</div>
+              <div className="font-mono text-xs font-black text-zinc-200 mt-0.5">{archDef.spd}</div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Special Skill Info */}
-          <div className="bg-zinc-950/30 p-1.5 rounded border border-zinc-900/50 space-y-0.5">
-            <div className="flex justify-between items-center text-[9px] font-bold text-amber-500/90">
-              <span>🌟 {archDef.specialName}</span>
-              <span className="font-mono text-[8px] bg-sky-950/40 border border-sky-900 px-1 rounded text-sky-400">{archDef.specialCost} MP</span>
-            </div>
-            <p className="text-[9px] text-zinc-500 leading-normal italic">
-              {archDef.specialDesc}
-            </p>
+      {/* Active Status Effects */}
+      <div className="space-y-1 flex flex-col justify-start min-h-[45px]">
+        <span className="text-[9px] font-bold text-zinc-500 font-mono tracking-wide uppercase">Active Statuses</span>
+        {unit.statuses.length === 0 ? (
+          <div className="text-[9px] text-zinc-600 font-sans italic p-1 border border-dashed border-zinc-900 rounded">No active buffs or ailments.</div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {unit.statuses.map((st, i) => (
+              <div key={i} className="flex items-center gap-1.5 bg-zinc-900/30 border border-zinc-900 px-2 py-0.5 rounded text-[9px] text-zinc-300">
+                <span className="text-xs leading-none">{STATUS_ICON[st.kind]}</span>
+                <div className="flex-1 flex justify-between items-center">
+                  <span className="font-bold capitalize font-mono text-[9px]">{st.kind}</span>
+                  <span className="text-[8px] text-zinc-500 font-mono">Remaining: {st.roundsLeft}</span>
+                </div>
+              </div>
+            ))}
           </div>
+        )}
+      </div>
+
+      {/* Special Ability Details (Larger) */}
+      {archDef && (
+        <div className="bg-zinc-900/25 border border-zinc-900 p-2.5 rounded-lg space-y-0.5 mt-auto">
+          <div className="flex justify-between items-center text-xs font-black text-amber-400">
+            <span>🌟 {archDef.specialName}</span>
+            <span className="font-mono text-[8px] bg-sky-950/50 border border-sky-900/60 px-1 rounded text-sky-400 uppercase tracking-wider font-extrabold">{archDef.specialCost} MP</span>
+          </div>
+          <p className="text-[9px] text-zinc-400 leading-normal font-sans italic pt-0.5 border-t border-zinc-900 mt-0.5">
+            {archDef.specialDesc}
+          </p>
         </div>
       )}
     </div>
@@ -445,6 +552,9 @@ export default function ArenaClashBoard({ state }: { state: GameState }) {
   const visualState = s;
   const teamA = visualState.units.filter((u) => u.side === "A");
   const teamB = visualState.units.filter((u) => u.side === "B");
+
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const selectedUnit = visualState.units.find((u) => u.id === selectedUnitId);
 
 
 
@@ -583,18 +693,32 @@ export default function ArenaClashBoard({ state }: { state: GameState }) {
       </div>
 
       {/* In-Game Gameplay Row Layout */}
-      <div className="w-full flex flex-col md:flex-row items-stretch justify-between gap-6 z-10 flex-1 mt-4 mb-4 min-h-0">
+      <div className="w-full flex flex-col md:flex-row items-stretch justify-between gap-4 z-10 flex-1 mt-4 mb-4 min-h-0">
         
         {/* Team A HUD Overlay Panel (Left) */}
-        <div className="w-[220px] flex flex-col gap-3 min-w-[170px] bg-zinc-950/65 backdrop-blur-xs p-3 rounded-lg border border-zinc-800/50 shadow-2xl">
-          <h3 className="text-xs font-black uppercase tracking-wider text-cyan-400 border-b border-cyan-950 pb-1.5">Team A</h3>
+        <div className="w-[180px] flex flex-col gap-2 min-w-[150px] bg-zinc-950/65 backdrop-blur-xs p-2.5 rounded-lg border border-zinc-800/50 shadow-2xl">
+          <h3 className="text-[10px] font-black font-mono uppercase tracking-wider text-cyan-400 border-b border-cyan-950 pb-1">Team A</h3>
           {teamA.map((unit) => (
-            <DetailedUnitCard key={unit.id} unit={unit} active={unit.id === activeId} />
+            <CompactUnitCard
+              key={unit.id}
+              unit={unit}
+              active={unit.id === activeId}
+              selected={selectedUnitId === unit.id}
+              onClick={() => setSelectedUnitId(selectedUnitId === unit.id ? null : unit.id)}
+            />
           ))}
         </div>
 
+        {/* Team A Inspector Column (conditional) */}
+        {selectedUnit && selectedUnit.side === "A" && (
+          <CharacterInspector
+            unit={selectedUnit}
+            onClose={() => setSelectedUnitId(null)}
+          />
+        )}
+
         {/* 3D Isometric Battlefield (Center) */}
-        <div className="flex-1 flex items-center justify-center min-w-[480px]">
+        <div className="flex-1 flex items-center justify-center min-w-[320px]">
           <div className="isometric-container pt-12 pb-4">
             <div className="isometric-grid">
               {tiles.map(({ x, y, unit }) => {
@@ -640,11 +764,25 @@ export default function ArenaClashBoard({ state }: { state: GameState }) {
           </div>
         </div>
 
+        {/* Team B Inspector Column (conditional) */}
+        {selectedUnit && selectedUnit.side === "B" && (
+          <CharacterInspector
+            unit={selectedUnit}
+            onClose={() => setSelectedUnitId(null)}
+          />
+        )}
+
         {/* Team B HUD Overlay Panel (Right) */}
-        <div className="w-[220px] flex flex-col gap-3 min-w-[170px] bg-zinc-950/65 backdrop-blur-xs p-3 rounded-lg border border-zinc-800/50 shadow-2xl text-right">
-          <h3 className="text-xs font-black uppercase tracking-wider text-fuchsia-400 border-b border-fuchsia-950 pb-1.5 text-right">Team B</h3>
+        <div className="w-[180px] flex flex-col gap-2 min-w-[150px] bg-zinc-950/65 backdrop-blur-xs p-2.5 rounded-lg border border-zinc-800/50 shadow-2xl text-right">
+          <h3 className="text-[10px] font-black font-mono uppercase tracking-wider text-fuchsia-400 border-b border-fuchsia-950 pb-1 text-right">Team B</h3>
           {teamB.map((u) => (
-            <DetailedUnitCard key={u.id} unit={u} active={u.id === activeId} />
+            <CompactUnitCard
+              key={u.id}
+              unit={u}
+              active={u.id === activeId}
+              selected={selectedUnitId === u.id}
+              onClick={() => setSelectedUnitId(selectedUnitId === u.id ? null : u.id)}
+            />
           ))}
         </div>
       </div>
