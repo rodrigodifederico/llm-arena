@@ -31,6 +31,41 @@ const API_PRESETS = [
   { name: "LM Studio", url: "http://localhost:1234/v1" },
 ];
 
+const GAME_DETAILS = [
+  {
+    id: "arena_clash",
+    name: "Arena Clash",
+    image: "/screenshot/arena-clash.png",
+    tagline: "3v3 tactical RPG and combat simulation",
+    description: "Assemble a squad of 3 heroes drafted from 10 distinct archetypes (Soldier, Priest, Mage, Rogue, etc.). Engage in a turn-based battle where character speed determines turn order. Manage physical/magical attacks, custom spells, cooldowns, mana, and visual status effects. Features floating combat text, animations, and sound effects.",
+    competencies: "Combat tactics, target priority, mana management, status interaction."
+  },
+  {
+    id: "hex_dominion",
+    name: "Hex Dominion",
+    image: "/screenshot/hex-dominium.png",
+    tagline: "7x7 Hexagonal grid conquest and resource war",
+    description: "Command forces on a 7x7 hex battlefield with symmetric energy mines. Earn energy every turn based on controlled territory and mines. Spend energy to spawn new units, move, or attack. Defend your Headquarters (30 HP) and conquer the hex grid before the 30-turn limit is reached.",
+    competencies: "Spatial planning, pathfinding, economic budgeting, long-horizon positioning."
+  },
+  {
+    id: "salvo",
+    name: "Salvo",
+    image: "/screenshot/salvo.png",
+    tagline: "Asymmetric information hidden-grid battleship duel",
+    description: "Secretly position a fleet of 5 ships of varying lengths on an 8x8 grid. Take turns launching salvos at the enemy. Since boards are hidden, you must deduce the enemy's ship locations using asymmetric feedback (hits, misses, or ship sinkings) and a systematic search algorithm.",
+    competencies: "Probabilistic inference, memory retention, deduction under uncertainty."
+  },
+  {
+    id: "standoff",
+    name: "Standoff",
+    image: "/screenshot/standoff.png",
+    tagline: "Simultaneous-reveal game theory gunfight",
+    description: "Start with 3 lives and an empty gun. Every round, both players submit actions simultaneously. Choose to Reload, Shield, Shoot (costs 1 bullet), or cast an unblockable Mega shot (costs 2 bullets). Outsmart the opponent's strategy, bluff, and manage your resources in real-time.",
+    competencies: "Opponent modeling, game-theory Nash equilibrium, bluffing, risk mitigation."
+  }
+];
+
 function PlayerCard({ player }: { player: PlayerId }) {
   const setup = useConfigStore((s) => s.players[player]);
   const setPlayer = useConfigStore((s) => s.setPlayer);
@@ -166,6 +201,14 @@ export default function SetupScreen() {
   const start = useMatchStore((s) => s.start);
   const go = useUiStore((s) => s.go);
 
+  const activeIndex = GAME_DETAILS.findIndex((g) => g.id === cfg.gameId);
+  const currentIdx = activeIndex === -1 ? 0 : activeIndex;
+
+  const setIndex = (idx: number) => {
+    const nextIdx = (idx + GAME_DETAILS.length) % GAME_DETAILS.length;
+    cfg.setGlobal({ gameId: GAME_DETAILS[nextIdx].id });
+  };
+
   const ready = playerReady(cfg.players.A) && playerReady(cfg.players.B) && cfg.seed.trim() !== "";
 
   const startMatch = () => {
@@ -215,20 +258,86 @@ export default function SetupScreen() {
       </div>
 
       <div className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-        <h2 className="text-sm font-bold text-zinc-300">Game & match settings</h2>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {ENGINES.map((e) => (
-            <button
-              key={e.id}
-              onClick={() => cfg.setGlobal({ gameId: e.id })}
-              className={`rounded-lg border p-3 text-left transition ${
-                cfg.gameId === e.id ? "border-amber-500/70 bg-amber-950/30" : "border-zinc-700 hover:bg-zinc-800/60"
-              }`}
-            >
-              <div className="text-sm font-semibold text-zinc-200">{e.displayName}</div>
-              <div className="mt-1 text-[10px] leading-tight text-zinc-500">{e.description}</div>
-            </button>
-          ))}
+        <h2 className="text-sm font-bold text-zinc-300 font-mono tracking-wider uppercase">Select Battleground</h2>
+        
+        {/* Large Game Slider */}
+        <div className="relative flex flex-col overflow-hidden rounded-2xl border border-zinc-850 bg-zinc-950/70 shadow-2xl md:flex-row min-h-[340px]">
+          {/* Previous Button */}
+          <button
+            type="button"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-800 bg-zinc-955/90 text-zinc-400 transition-all hover:bg-zinc-900 hover:text-amber-400 active:scale-90 shadow-xl hover:border-amber-500/35 cursor-pointer"
+            onClick={() => setIndex(currentIdx - 1)}
+            title="Previous Game"
+          >
+            ◀
+          </button>
+          
+          {/* Next Button */}
+          <button
+            type="button"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-800 bg-zinc-955/90 text-zinc-400 transition-all hover:bg-zinc-900 hover:text-amber-400 active:scale-90 shadow-xl hover:border-amber-500/35 cursor-pointer"
+            onClick={() => setIndex(currentIdx + 1)}
+            title="Next Game"
+          >
+            ▶
+          </button>
+
+          {/* Game Image Panel */}
+          <div className="relative h-[220px] w-full overflow-hidden bg-zinc-900 md:h-auto md:w-[48%] flex items-center justify-center border-b border-zinc-800 md:border-b-0 md:border-r border-zinc-850">
+            <img
+              src={GAME_DETAILS[currentIdx].image}
+              alt={GAME_DETAILS[currentIdx].name}
+              className="h-full w-full object-cover transition-all duration-700 hover:scale-[1.03] select-none"
+            />
+            {/* Active Indicator Overlay */}
+            <div className="absolute top-4 left-4 rounded-full bg-amber-500/90 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-zinc-950 shadow-lg border border-amber-400/20">
+              Selected
+            </div>
+          </div>
+
+          {/* Game Info Panel */}
+          <div className="flex flex-1 flex-col justify-between p-6 md:p-8">
+            <div className="space-y-3">
+              <div className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 font-mono">
+                System Objective
+              </div>
+              <h3 className="text-2xl font-black tracking-tight text-zinc-100 uppercase">
+                {GAME_DETAILS[currentIdx].name}
+              </h3>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-amber-500/90 font-mono">
+                {GAME_DETAILS[currentIdx].tagline}
+              </div>
+              <p className="text-xs text-zinc-300 leading-relaxed pt-1">
+                {GAME_DETAILS[currentIdx].description}
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <div className="border-t border-zinc-900 pt-3">
+                <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider font-mono block mb-1">
+                  Evaluated Competencies
+                </span>
+                <span className="text-xs font-semibold text-emerald-400 font-sans">
+                  {GAME_DETAILS[currentIdx].competencies}
+                </span>
+              </div>
+
+              {/* Slider Dots */}
+              <div className="flex items-center justify-center gap-2 pt-2 border-t border-zinc-900/60">
+                {GAME_DETAILS.map((game, idx) => (
+                  <button
+                    key={game.id}
+                    type="button"
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      idx === currentIdx ? "w-6 bg-amber-500" : "w-2 bg-zinc-700 hover:bg-zinc-600"
+                    }`}
+                    onClick={() => setIndex(idx)}
+                    title={`Switch to ${game.name}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <Field label="Seed" hint="same seed = same board/characters">
