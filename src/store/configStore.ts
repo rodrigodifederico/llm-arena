@@ -80,7 +80,6 @@ export const useConfigStore = create<ConfigState>()(
           A: { ...s.players.A, apiKey: s.players.A.rememberKey ? s.players.A.apiKey : "" },
           B: { ...s.players.B, apiKey: s.players.B.rememberKey ? s.players.B.apiKey : "" },
         },
-        gameId: s.gameId,
         seed: s.seed,
         temperature: s.temperature,
         allowThinking: s.allowThinking,
