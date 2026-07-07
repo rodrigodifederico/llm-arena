@@ -435,7 +435,7 @@ function CharacterInspector({
       </div>
 
       {/* Avatar Image Section */}
-      <div className="relative h-24 w-full rounded-lg bg-zinc-900/60 border border-zinc-850 flex items-center justify-center p-2 overflow-hidden group">
+      <div className="relative h-32 w-full rounded-lg bg-zinc-900/60 border border-zinc-850 flex items-center justify-center p-2 overflow-hidden group">
         <div 
           className="absolute inset-0 transition-opacity duration-500 opacity-20 group-hover:opacity-40" 
           style={{ background: `radial-gradient(circle, ${sideGlow} 0%, transparent 70%)` }}
@@ -445,14 +445,14 @@ function CharacterInspector({
           <img
             src={transparentSrc}
             alt={unit.name}
-            className="h-20 object-contain z-10 filter drop-shadow(0 0 12px rgba(0,0,0,0.6)) transition-transform duration-500 group-hover:scale-105"
+            className="h-28 object-contain z-10 filter drop-shadow(0 0 12px rgba(0,0,0,0.6)) transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="text-3xl z-10">{dead ? "💀" : unit.emoji}</span>
+          <span className="text-5xl z-10">{dead ? "💀" : unit.emoji}</span>
         )}
         
         {dead && (
-          <span className="absolute bottom-1 bg-red-950/80 border border-red-800/50 text-red-400 text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-widest font-mono shadow-md z-15">
+          <span className="absolute bottom-2 bg-red-950/80 border border-red-800/50 text-red-400 text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-widest font-mono shadow-md z-15">
             Fallen
           </span>
         )}
