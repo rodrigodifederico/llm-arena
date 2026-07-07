@@ -1,6 +1,7 @@
 Demonstration:
 https://www.youtube.com/watch?v=j1poCNo-w1o
 
+![Arena Clash](/public/screenshot/arena-clash.png)
 
 
 # ⚔️ LLM Arena
