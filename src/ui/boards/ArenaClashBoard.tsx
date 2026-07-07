@@ -442,53 +442,11 @@ function DetailedUnitCard({ unit, active }: { unit: ArenaUnit; active: boolean }
 
 export default function ArenaClashBoard({ state }: { state: GameState }) {
   const s = state as ArenaState;
-
-  // Local state queue using refs to avoid React batching / skipping races
-  const queueRef = useRef<ArenaState[]>([]);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [visualState, setVisualState] = useState<ArenaState>(s);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const processNextState = () => {
-    if (queueRef.current.length === 0) return;
-    
-    const nextState = queueRef.current.shift()!;
-    setVisualState(nextState);
-
-    // If it's a combat turn, lock the queue for 2.3 seconds
-    if (nextState.lastAction) {
-      setIsAnimating(true);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        setIsAnimating(false);
-      }, 2300);
-    }
-  };
-
-  // Queue up new states arriving from the match controller
-  useEffect(() => {
-    queueRef.current.push(s);
-    if (!isAnimating) {
-      processNextState();
-    }
-  }, [s]);
-
-  // When animation lock is released, process the next state in queue
-  useEffect(() => {
-    if (!isAnimating) {
-      processNextState();
-    }
-  }, [isAnimating]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
+  const visualState = s;
   const teamA = visualState.units.filter((u) => u.side === "A");
   const teamB = visualState.units.filter((u) => u.side === "B");
+
+
 
   // Animation controller — driven by the engine's structured lastEvent
   // (actor, motion, per-unit effects) instead of parsing log text.
