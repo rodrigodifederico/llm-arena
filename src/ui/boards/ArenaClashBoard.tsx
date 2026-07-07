@@ -435,7 +435,7 @@ function CharacterInspector({
       </div>
 
       {/* Avatar Image Section */}
-      <div className="relative aspect-square w-full rounded-lg bg-zinc-900/60 border border-zinc-850 flex items-center justify-center p-3 overflow-hidden group">
+      <div className="relative h-24 w-full rounded-lg bg-zinc-900/60 border border-zinc-850 flex items-center justify-center p-2 overflow-hidden group">
         <div 
           className="absolute inset-0 transition-opacity duration-500 opacity-20 group-hover:opacity-40" 
           style={{ background: `radial-gradient(circle, ${sideGlow} 0%, transparent 70%)` }}
@@ -445,14 +445,14 @@ function CharacterInspector({
           <img
             src={transparentSrc}
             alt={unit.name}
-            className="w-4/5 h-4/5 object-contain z-10 filter drop-shadow(0 0 12px rgba(0,0,0,0.6)) transition-transform duration-500 group-hover:scale-105"
+            className="h-20 object-contain z-10 filter drop-shadow(0 0 12px rgba(0,0,0,0.6)) transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="text-4xl z-10">{dead ? "💀" : unit.emoji}</span>
+          <span className="text-3xl z-10">{dead ? "💀" : unit.emoji}</span>
         )}
         
         {dead && (
-          <span className="absolute bottom-2 bg-red-950/80 border border-red-800/50 text-red-400 text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-widest font-mono shadow-md z-15">
+          <span className="absolute bottom-1 bg-red-950/80 border border-red-800/50 text-red-400 text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-widest font-mono shadow-md z-15">
             Fallen
           </span>
         )}
@@ -532,12 +532,12 @@ function CharacterInspector({
 
       {/* Special Ability Details (Larger) */}
       {archDef && (
-        <div className="bg-zinc-900/25 border border-zinc-900 p-2.5 rounded-lg space-y-0.5 mt-auto">
-          <div className="flex justify-between items-center text-xs font-black text-amber-400">
+        <div className="bg-zinc-900/35 border border-zinc-800 p-3 rounded-lg space-y-1.5 mt-auto">
+          <div className="flex justify-between items-center text-[13px] font-black text-amber-400">
             <span>🌟 {archDef.specialName}</span>
-            <span className="font-mono text-[8px] bg-sky-950/50 border border-sky-900/60 px-1 rounded text-sky-400 uppercase tracking-wider font-extrabold">{archDef.specialCost} MP</span>
+            <span className="font-mono text-[9px] bg-sky-950/60 border border-sky-900/70 px-1.5 py-0.5 rounded text-sky-400 uppercase tracking-wider font-extrabold">{archDef.specialCost} MP</span>
           </div>
-          <p className="text-[9px] text-zinc-400 leading-normal font-sans italic pt-0.5 border-t border-zinc-900 mt-0.5">
+          <p className="text-xs text-zinc-300 leading-relaxed font-sans italic pt-1 border-t border-zinc-850 mt-1">
             {archDef.specialDesc}
           </p>
         </div>
