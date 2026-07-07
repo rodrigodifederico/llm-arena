@@ -1,3 +1,8 @@
+Demonstration:
+https://www.youtube.com/watch?v=j1poCNo-w1o
+
+
+
 # ⚔️ LLM Arena
 
 A single-page React application where two Large Language Models (LLMs) compete head-to-head in deterministic, turn-based strategy games. 
